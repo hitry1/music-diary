@@ -1,21 +1,30 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import StarRating from './StarRating'
 import { MOODS } from '../moods'
+import type { EntryForm as FormValue, MoodId } from '../types'
+
+interface Props {
+  initial?: FormValue // 있으면 수정, 없으면 새 기록
+  submitLabel?: string
+  onSubmit: (form: FormValue) => void
+  onCancel?: () => void
+}
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-// 등록과 수정에 함께 쓰는 입력 폼. initial 이 있으면 수정, 없으면 새 기록.
-export default function EntryForm({ initial, submitLabel = '저장', onSubmit, onCancel }) {
-  const [rating, setRating] = useState(initial?.rating ?? 0)
-  const [mood, setMood] = useState(initial?.mood ?? '')
+// 등록과 수정에 함께 쓰는 입력 폼
+export default function EntryForm({ initial, submitLabel = '저장', onSubmit, onCancel }: Props) {
+  const [rating, setRating] = useState<number>(initial?.rating ?? 0)
+  const [mood, setMood] = useState<MoodId | ''>(initial?.mood ?? '') // 아직 안 골랐으면 ''
   const [memo, setMemo] = useState(initial?.memo ?? '')
   const [listenedAt, setListenedAt] = useState(initial?.listenedAt ?? today())
   const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault() // 폼 제출로 페이지가 새로고침되지 않게
     if (rating === 0) return setError('별점을 골라 주세요.')
-    if (!mood) return setError('기분을 하나 골라 주세요.')
+    if (mood === '') return setError('기분을 하나 골라 주세요.')
+    if (!listenedAt || listenedAt > today()) return setError('들은 날을 오늘이나 그 전으로 골라 주세요.')
     if (memo.trim().length > 300) return setError('메모는 300자까지 쓸 수 있습니다.')
     setError('')
     onSubmit({ rating, mood, memo: memo.trim(), listenedAt })
@@ -23,10 +32,10 @@ export default function EntryForm({ initial, submitLabel = '저장', onSubmit, o
 
   return (
     <form className="entry-form" onSubmit={handleSubmit}>
-      <label className="field">
+      <div className="field">
         <span>별점</span>
         <StarRating value={rating} onChange={setRating} />
-      </label>
+      </div>
 
       <div className="field">
         <span>기분</span>

@@ -23,7 +23,9 @@ npm run build    # dist/ 에 배포용
 
 기록은 브라우저 localStorage 에 저장되어 새로고침해도 남습니다.
 
-## 쓴 React 기술
+## 쓴 기술
+- **TypeScript**: `strict`, `any` 없음 — 데이터·Props·reducer 액션·API 응답을 타입으로 정의
+
 - **react-router-dom**: `BrowserRouter` · `Routes` · `Route`(중첩 · `index` · `:param` · `*`) · `Outlet` · `NavLink` · `Link`(state 넘기기) · `useParams` · `useNavigate` · `useLocation` · `useSearchParams`
 - **Hooks**: `useState` · `useEffect`(API 호출·취소, 저장, 오디오 정리) · `useReducer`(등록·수정·삭제) · `useContext`(기록·플레이어 공유) · `useMemo`(거르기·통계) · `useRef`(오디오) · 직접 만든 `useDebounce`
 - **반응형**: CSS Grid + 미디어 쿼리 3단(데스크톱 · 760px · 520px), 390px 폭에서 가로 넘침 0px
@@ -31,13 +33,14 @@ npm run build    # dist/ 에 배포용
 ## 폴더
 ```
 src/
-  api/itunes.js            외부 Open API 호출 (search · lookup)
-  context/DiaryContext.jsx 기록 상태(useReducer) + localStorage 저장
-  context/PlayerContext.jsx 30초 미리듣기 오디오 하나를 공유
-  hooks/useDebounce.js     입력이 멈춘 뒤에 값 넘기기
+  api/itunes.ts            외부 Open API 호출 (search · lookup)
+  context/DiaryContext.tsx 기록 상태(useReducer) + localStorage 저장
+  context/PlayerContext.tsx 30초 미리듣기 오디오 하나를 공유
+  hooks/useDebounce.ts     입력이 멈춘 뒤에 값 넘기기
   components/              Layout · TrackCard · EntryForm · EntryItem · FilterBar · StarRating · PlayButton
   pages/                   SearchPage · TrackPage · DiaryPage · EntryDetailPage · StatsPage · NotFound
-  moods.js                 기분 태그 목록
+  moods.ts                 기분 태그 목록
+  types.ts                 데이터 타입(Track · Entry · EntryForm · MoodId · SortKey)
 docs/                      개발 기록 · 화면 캡처
 ```
 

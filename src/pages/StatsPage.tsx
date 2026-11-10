@@ -2,6 +2,14 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useDiary } from '../context/DiaryContext'
 import { MOODS } from '../moods'
+import type { Entry } from '../types'
+
+// 항목별 개수를 세어 많은 순으로 — [값, 개수][]
+function countBy(entries: Entry[], key: 'artist' | 'genre' | 'mood'): [string, number][] {
+  const m = new Map<string, number>()
+  entries.forEach((e) => m.set(e[key], (m.get(e[key]) ?? 0) + 1))
+  return [...m.entries()].sort((a, b) => b[1] - a[1])
+}
 
 // 통계 — 기록에서 셈한다(따로 저장하지 않는다)
 export default function StatsPage() {
@@ -10,15 +18,18 @@ export default function StatsPage() {
   const stats = useMemo(() => {
     if (entries.length === 0) return null
     const avg = entries.reduce((s, e) => s + e.rating, 0) / entries.length
-    const count = (key) => {
-      const m = new Map()
-      entries.forEach((e) => m.set(e[key], (m.get(e[key]) ?? 0) + 1))
-      return [...m.entries()].sort((a, b) => b[1] - a[1])
-    }
-    return { avg, artists: count('artist').slice(0, 5), genres: count('genre').slice(0, 5), moods: count('mood') }
+    return { avg, artists: countBy(entries, 'artist').slice(0, 5), genres: countBy(entries, 'genre').slice(0, 5), moods: countBy(entries, 'mood') }
   }, [entries])
 
-  if (!stats) return <section className="empty"><h1 className="page-title">통계</h1><p className="muted">기록이 생기면 여기에 모여요.</p><Link to="/" className="btn primary">곡 찾기</Link></section>
+  if (!stats) {
+    return (
+      <section className="empty">
+        <h1 className="page-title">통계</h1>
+        <p className="muted">기록이 생기면 여기에 모여요.</p>
+        <Link to="/" className="btn primary">곡 찾기</Link>
+      </section>
+    )
+  }
 
   const max = Math.max(...stats.moods.map(([, n]) => n))
   return (

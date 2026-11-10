@@ -2,9 +2,15 @@ import { Link } from 'react-router-dom'
 import StarRating from './StarRating'
 import PlayButton from './PlayButton'
 import { moodOf } from '../moods'
+import type { Entry } from '../types'
+
+interface Props {
+  entry: Entry
+  onDelete: (entry: Entry) => void
+}
 
 // 내 기록 목록의 한 줄 — 누르면 상세(/diary/:entryId)로
-export default function EntryItem({ entry, onDelete }) {
+export default function EntryItem({ entry, onDelete }: Props) {
   const mood = moodOf(entry.mood)
   return (
     <li className="entry-item">

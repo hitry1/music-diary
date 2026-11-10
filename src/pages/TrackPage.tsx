@@ -4,23 +4,32 @@ import { lookupTrack } from '../api/itunes'
 import { useDiary } from '../context/DiaryContext'
 import EntryForm from '../components/EntryForm'
 import PlayButton from '../components/PlayButton'
+import type { EntryForm as FormValue, Track } from '../types'
+
+// 검색 화면의 Link 가 넘겨 준 state 모양
+interface LocationState {
+  track?: Track
+}
 
 // 기록 쓰기 — /track/:trackId
 // 검색 화면에서 오면 곡 정보를 state 로 받고, 주소로 바로 들어오면 API 로 다시 찾는다
 export default function TrackPage() {
-  const { trackId } = useParams()
+  const { trackId = '' } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
   const { entries, addEntry } = useDiary()
-  const [track, setTrack] = useState(location.state?.track ?? null)
+  const [track, setTrack] = useState<Track | null>((location.state as LocationState | null)?.track ?? null)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (track && String(track.trackId) === trackId) return
+    if (track && String(track.trackId) === trackId) return // 이미 있다
     const controller = new AbortController()
     lookupTrack(trackId, controller.signal)
       .then((t) => (t ? setTrack(t) : setError('곡을 찾을 수 없습니다.')))
-      .catch((err) => err.name !== 'AbortError' && setError(err.message))
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return
+        setError(err instanceof Error ? err.message : '알 수 없는 오류')
+      })
     return () => controller.abort()
   }, [trackId, track])
 
@@ -29,7 +38,7 @@ export default function TrackPage() {
 
   const already = entries.filter((e) => e.trackId === track.trackId)
 
-  const handleSubmit = (form) => {
+  const handleSubmit = (form: FormValue) => {
     const entry = addEntry(track, form)
     navigate(`/diary/${entry.id}`, { replace: true })
   }

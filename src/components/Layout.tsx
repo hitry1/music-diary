@@ -4,7 +4,7 @@ import { useDiary } from '../context/DiaryContext'
 // 모든 화면에 공통으로 붙는 머리·꼬리. 바뀌는 화면은 <Outlet /> 자리에 들어온다.
 export default function Layout() {
   const { entries } = useDiary()
-  const link = ({ isActive }) => 'nav-link' + (isActive ? ' active' : '')
+  const link = ({ isActive }: { isActive: boolean }) => 'nav-link' + (isActive ? ' active' : '')
 
   return (
     <div className="app">

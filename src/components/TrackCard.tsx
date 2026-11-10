@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom'
+import type { Track } from '../types'
 import PlayButton from './PlayButton'
 
+interface Props {
+  track: Track
+  recorded: boolean
+}
+
 // 검색 결과 한 곡 — 누르면 기록 쓰기 화면(/track/:trackId)으로, 곡 정보를 state 로 함께 넘긴다
-export default function TrackCard({ track, recorded }) {
+export default function TrackCard({ track, recorded }: Props) {
   return (
     <Link to={`/track/${track.trackId}`} state={{ track }} className="track-card">
       <div className="art">

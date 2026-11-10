@@ -4,14 +4,17 @@ import { searchTracks } from '../api/itunes'
 import useDebounce from '../hooks/useDebounce'
 import { useDiary } from '../context/DiaryContext'
 import TrackCard from '../components/TrackCard'
+import type { Track } from '../types'
+
+type Status = 'idle' | 'loading' | 'done' | 'error'
 
 // 곡 찾기 — 검색어는 주소(?q=)에 담아 뒤로 가기·새로고침해도 결과가 남게 한다
 export default function SearchPage() {
   const [params, setParams] = useSearchParams()
   const [term, setTerm] = useState(params.get('q') ?? '')
   const debounced = useDebounce(term.trim(), 450)
-  const [tracks, setTracks] = useState([])
-  const [status, setStatus] = useState('idle') // idle | loading | done | error
+  const [tracks, setTracks] = useState<Track[]>([])
+  const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState('')
   const { entries } = useDiary()
   const recordedIds = new Set(entries.map((e) => e.trackId))
@@ -31,9 +34,9 @@ export default function SearchPage() {
         setTracks(list)
         setStatus('done')
       })
-      .catch((err) => {
-        if (err.name === 'AbortError') return
-        setError(err.message)
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return
+        setError(err instanceof Error ? err.message : '알 수 없는 오류')
         setStatus('error')
       })
     return () => controller.abort()

@@ -12,7 +12,7 @@ export default function EntryDetailPage() {
   const navigate = useNavigate()
   const { entries, updateEntry, removeEntry } = useDiary()
   const [editing, setEditing] = useState(false)
-  const entry = entries.find((e) => e.id === Number(entryId)) // 주소의 값은 글자라 숫자로 바꿔 비교
+  const entry = entries.find((e) => e.id === Number(entryId)) // 주소의 값은 글자(string)라 숫자로 바꿔 비교
 
   if (!entry) {
     return (
