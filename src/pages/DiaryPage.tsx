@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useDiary } from '../context/DiaryContext'
 import FilterBar from '../components/FilterBar'
 import EntryItem from '../components/EntryItem'
+import ShareBox from '../components/ShareBox'
 import type { Entry, MoodId, SortKey } from '../types'
 
 // 내 기록 — 검색어·기분·정렬로 거른다
@@ -46,6 +47,7 @@ export default function DiaryPage() {
       <h1 className="page-title">내 기록</h1>
       <FilterBar keyword={keyword} setKeyword={setKeyword} mood={mood} setMood={setMood} sort={sort} setSort={setSort} />
       <p className="small muted">{shown.length}개 / 전체 {entries.length}개</p>
+      <ShareBox entries={shown} />
       {shown.length === 0 ? (
         <p className="hint">조건에 맞는 기록이 없어요.</p>
       ) : (

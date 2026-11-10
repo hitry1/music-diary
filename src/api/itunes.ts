@@ -64,3 +64,11 @@ export async function lookupTrack(trackId: string, signal?: AbortSignal): Promis
   const r = data.results.find((x) => x.kind === 'song')
   return r ? toTrack(r) : null
 }
+
+// 곡 번호 여러 개를 한 번에 찾는다(공유 링크) — 못 찾은 곡은 결과에 없다
+export async function lookupTracks(ids: number[], signal?: AbortSignal): Promise<Map<number, Track>> {
+  const res = await fetch(`${BASE}/lookup?id=${ids.join(',')}&country=US`, { signal })
+  if (!res.ok) throw new Error(`곡 정보를 못 가져왔습니다 (HTTP ${res.status})`)
+  const data: ITunesResponse = await res.json()
+  return new Map(data.results.filter((r) => r.kind === 'song').map((r) => [r.trackId, toTrack(r)]))
+}

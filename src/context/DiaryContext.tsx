@@ -12,6 +12,10 @@ interface DiaryValue {
 const DiaryContext = createContext<DiaryValue | null>(null)
 const KEY = 'music-diary-entries'
 
+// 기록 번호 — Date.now() 만 쓰면 「모두 담기」처럼 한 번에 여러 개를 만들 때 같은 번호가 생긴다
+let lastId = 0
+const nextId = () => (lastId = Math.max(Date.now(), lastId + 1))
+
 // 등록·수정·삭제 — 할 수 있는 일을 타입으로 못박는다
 type Action =
   | { type: 'add'; entry: Entry }
@@ -50,7 +54,7 @@ export function DiaryProvider({ children }: { children: ReactNode }) {
 
   const addEntry = (track: Track, form: EntryForm): Entry => {
     const now = Date.now()
-    const entry: Entry = { id: now, ...track, ...form, createdAt: now, updatedAt: now }
+    const entry: Entry = { id: nextId(), ...track, ...form, createdAt: now, updatedAt: now }
     dispatch({ type: 'add', entry })
     return entry
   }

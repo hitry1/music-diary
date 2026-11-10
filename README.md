@@ -19,6 +19,7 @@ npm run build    # dist/ 에 배포용
 | 기록 상세 보기 · 수정 · 삭제 | `/diary/:entryId` |
 | 내 기록 검색(제목·가수·앨범·메모) · 기분 거르기 · 정렬(최근/별점/제목) | `/diary` |
 | 통계 — 기록 수 · 평균 별점 · 기분 분포 · 자주 들은 가수 · 장르 | `/stats` |
+| 공유 링크 — 보이는 기록(최대 20개)을 주소에 담아 복사, 받은 사람은 읽기 전용으로 보고 「담기」(같은 곡·같은 날은 건너뜀) | `/diary` → `/shared?d=…` |
 | 없는 주소 안내 | `*` |
 
 기록은 브라우저 localStorage 에 저장되어 새로고침해도 남습니다.
@@ -38,7 +39,8 @@ src/
   context/PlayerContext.tsx 30초 미리듣기 오디오 하나를 공유
   hooks/useDebounce.ts     입력이 멈춘 뒤에 값 넘기기
   components/              Layout · TrackCard · EntryForm · EntryItem · FilterBar · StarRating · PlayButton
-  pages/                   SearchPage · TrackPage · DiaryPage · EntryDetailPage · StatsPage · NotFound
+  utils/share.ts           공유 링크 만들기·읽기(base64url, 받은 값 검사)
+  pages/                   SharedPage · SearchPage · TrackPage · DiaryPage · EntryDetailPage · StatsPage · NotFound
   moods.ts                 기분 태그 목록
   types.ts                 데이터 타입(Track · Entry · EntryForm · MoodId · SortKey)
 docs/                      개발 기록 · 화면 캡처

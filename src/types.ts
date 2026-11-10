@@ -35,3 +35,12 @@ export interface Entry extends Track, EntryForm {
 }
 
 export type SortKey = 'recent' | 'rating' | 'title'
+
+// 공유 링크에 담는 한 항목 — 곡 정보는 빼고 곡 번호만(받는 쪽에서 다시 가져온다)
+export interface SharedItem {
+  t: number // trackId
+  r: number // 별점
+  m: MoodId
+  d: string // 들은 날
+  n: string // 메모(앞 100자)
+}
