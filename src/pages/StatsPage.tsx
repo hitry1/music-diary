@@ -5,10 +5,13 @@ import { MOODS } from '../moods'
 import type { Entry } from '../types'
 
 // 항목별 개수를 세어 많은 순으로 — [값, 개수][]
+// 예) artist 로 세면 { IU: 2, NewJeans: 1 } → [['IU', 2], ['NewJeans', 1]]
 function countBy(entries: Entry[], key: 'artist' | 'genre' | 'mood'): [string, number][] {
-  const m = new Map<string, number>()
-  entries.forEach((e) => m.set(e[key], (m.get(e[key]) ?? 0) + 1))
-  return [...m.entries()].sort((a, b) => b[1] - a[1])
+  const count: Record<string, number> = {}
+  entries.forEach((e) => {
+    count[e[key]] = (count[e[key]] ?? 0) + 1
+  })
+  return Object.entries(count).sort((a, b) => b[1] - a[1])
 }
 
 // 통계 — 기록에서 셈한다(따로 저장하지 않는다)

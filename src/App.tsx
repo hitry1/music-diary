@@ -26,6 +26,7 @@ export default function App() {
               </Route>
               <Route path="stats" element={<StatsPage />} />
               <Route path="shared" element={<SharedPage />} />
+              <Route path="shared/:data" element={<SharedPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

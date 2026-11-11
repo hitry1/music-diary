@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { lookupTracks } from '../api/itunes'
 import { useDiary } from '../context/DiaryContext'
 import { decodeShare } from '../utils/share'
@@ -10,27 +10,30 @@ import type { SharedItem, Track } from '../types'
 
 type Status = 'loading' | 'done' | 'error'
 
-// 공유받은 목록 — /shared?d=… (읽기 전용, 담기만)
+// 공유받은 목록 — /shared/:data (읽기 전용, 담기만)
 export default function SharedPage() {
-  const [params] = useSearchParams()
-  const items = useMemo(() => decodeShare(params.get('d')), [params])
+  const { data } = useParams()
+  const items = decodeShare(data)
   const { entries, addEntry } = useDiary()
-  const [tracks, setTracks] = useState<Map<number, Track>>(new Map())
+  const [tracks, setTracks] = useState<Track[]>([])
   const [status, setStatus] = useState<Status>('loading')
   const [retry, setRetry] = useState(0)
 
   useEffect(() => {
-    if (!items) return
-    const controller = new AbortController()
-    setStatus('loading')
-    lookupTracks([...new Set(items.map((i) => i.t))], controller.signal)
-      .then((map) => { setTracks(map); setStatus('done') })
-      .catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === 'AbortError') return
+    const list = decodeShare(data)
+    if (!list) return
+    const load = async () => {
+      setStatus('loading')
+      try {
+        const ids = list.map((i) => i.t).filter((id, k, all) => all.indexOf(id) === k) // 같은 곡은 한 번만
+        setTracks(await lookupTracks(ids))
+        setStatus('done')
+      } catch {
         setStatus('error')
-      })
-    return () => controller.abort()
-  }, [items, retry])
+      }
+    }
+    load()
+  }, [data, retry])
 
   if (!items) {
     return (
@@ -42,20 +45,25 @@ export default function SharedPage() {
     )
   }
 
-  // 같은 곡·같은 들은 날이 내 기록에 이미 있나
-  const mine = new Set(entries.map((e) => `${e.trackId}|${e.listenedAt}`))
-  const has = (i: SharedItem) => mine.has(`${i.t}|${i.d}`)
+  const trackOf = (i: SharedItem) => tracks.find((t) => t.trackId === i.t)
+  // 같은 곡·같은 들은 날이 내 기록에 이미 있나 — 열쇠 「곡번호|들은날」
+  const mine = entries.map((e) => `${e.trackId}|${e.listenedAt}`)
+  const has = (i: SharedItem) => mine.includes(`${i.t}|${i.d}`)
+
   const add = (i: SharedItem) => {
-    const track = tracks.get(i.t)
+    const track = trackOf(i)
     if (track) addEntry(track, { rating: i.r, mood: i.m, listenedAt: i.d, memo: i.n })
   }
-  const addable = items.filter((i) => tracks.has(i.t) && !has(i))
+  const addable = items.filter((i) => trackOf(i) && !has(i))
   const addAll = () => {
-    const seen = new Set(mine) // 같은 링크 안에 같은 기록이 두 번 있어도 한 번만
-    addable.forEach((i) => {
-      const k = `${i.t}|${i.d}`
-      if (!seen.has(k)) { seen.add(k); add(i) }
-    })
+    const seen = [...mine] // 같은 링크 안에 같은 기록이 두 번 있어도 한 번만 (entries 는 이 함수가 끝난 뒤에야 바뀐다)
+    for (const i of addable) {
+      const key = `${i.t}|${i.d}`
+      if (!seen.includes(key)) {
+        seen.push(key)
+        add(i)
+      }
+    }
   }
 
   return (
@@ -64,19 +72,19 @@ export default function SharedPage() {
       <p className="small muted">읽기만 할 수 있어요. 마음에 드는 곡은 내 기록에 담아 고칠 수 있어요.</p>
       {status === 'loading' && <p className="hint">곡 정보를 가져오는 중…</p>}
       {status === 'error' && (
-        <p className="error">곡 정보를 못 가져왔어요. <button className="btn" onClick={() => setRetry((n) => n + 1)}>다시 시도</button></p>
+        <p className="error">곡 정보를 못 가져왔어요. <button className="btn" onClick={() => setRetry(retry + 1)}>다시 시도</button></p>
       )}
       {status === 'done' && (
         <>
-          <div className="actions" style={{ justifyContent: 'flex-start' }}>
+          <div className="actions start">
             <button className="btn primary" onClick={addAll} disabled={addable.length === 0}>모두 담기 ({addable.length})</button>
           </div>
           <ul className="entry-list">
             {items.map((i, k) => {
-              const t = tracks.get(i.t)
+              const t = trackOf(i)
               const mood = moodOf(i.m)
               return (
-                <li key={`${i.t}-${i.d}-${k}`} className="entry-item">
+                <li key={k} className="entry-item">
                   <div className="entry-link">
                     <div className="art small-art">
                       {t && <img src={t.artwork} alt="" loading="lazy" />}
@@ -87,7 +95,7 @@ export default function SharedPage() {
                         <strong className="ellipsis">{t ? t.title : '곡 정보를 찾을 수 없어요'}</strong>
                         <span className="muted small">{i.d}</span>
                       </div>
-                      <span className="ellipsis muted">{t?.artist ?? `곡 번호 ${i.t}`}</span>
+                      <span className="ellipsis muted">{t ? t.artist : `곡 번호 ${i.t}`}</span>
                       <div className="entry-meta">
                         <StarRating value={i.r} readOnly />
                         {mood && <span className="chip on small">{mood.emoji} {mood.label}</span>}

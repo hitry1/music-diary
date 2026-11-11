@@ -1,56 +1,49 @@
 import { MOODS } from '../moods'
-import type { Entry, MoodId, SharedItem } from '../types'
+import type { Entry, SharedItem } from '../types'
 
 export const SHARE_MAX = 20
 const MEMO_MAX = 100
 
-// 한글도 안전하게: 글자 → UTF-8 바이트 → base64 → 주소에 쓸 수 있게(+ / = 바꿈)
-function toBase64Url(text: string): string {
-  const bytes = new TextEncoder().encode(text)
-  let bin = ''
-  bytes.forEach((b) => (bin += String.fromCharCode(b)))
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
-function fromBase64Url(code: string): string {
-  const b64 = code.replace(/-/g, '+').replace(/_/g, '/')
-  const bin = atob(b64) // 깨진 글자면 여기서 오류 → 부르는 쪽 try 가 잡는다
-  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)))
-}
-
-// 기록 → 공유 링크의 d 값 (앞에서부터 최대 20개, 메모 100자)
+// 기록 → 공유 링크에 붙일 글자 (앞에서부터 최대 20개, 메모 100자)
+// JSON 글자로 바꾼 뒤 encodeURIComponent 로 주소에 넣어도 되는 글자로 바꾼다(한글·빈칸·따옴표 등)
 export function encodeShare(entries: Entry[]): string {
   const items: SharedItem[] = entries.slice(0, SHARE_MAX).map((e) => ({
-    t: e.trackId, r: e.rating, m: e.mood, d: e.listenedAt, n: e.memo.slice(0, MEMO_MAX),
+    t: e.trackId,
+    r: e.rating,
+    m: e.mood,
+    d: e.listenedAt,
+    n: e.memo.slice(0, MEMO_MAX),
   }))
-  return toBase64Url(JSON.stringify(items))
+  return encodeURIComponent(JSON.stringify(items))
 }
 
-const moodIds = new Set<string>(MOODS.map((m) => m.id))
-
-// 주소로 들어온 값은 누가 손댔을 수 있다 — 모양이 맞는 항목만 통과시킨다
-function isSharedItem(x: unknown): x is SharedItem {
-  if (typeof x !== 'object' || x === null) return false
-  const o = x as Record<string, unknown>
-  return (
-    typeof o.t === 'number' && Number.isInteger(o.t) && o.t > 0 &&
-    typeof o.r === 'number' && Number.isInteger(o.r) && o.r >= 1 && o.r <= 5 &&
-    typeof o.m === 'string' && moodIds.has(o.m) &&
-    typeof o.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(o.d) &&
-    typeof o.n === 'string'
-  )
+// 한 항목 검사 — 주소로 들어온 값은 누가 손댔을 수 있으므로 하나하나 확인한 뒤 새로 만든다
+function toItem(value: unknown): SharedItem | null {
+  if (typeof value !== 'object' || value === null) return null
+  const { t, r, m, d, n } = value as Record<string, unknown>
+  if (typeof t !== 'number' || t <= 0) return null
+  if (typeof r !== 'number' || r < 1 || r > 5) return null
+  if (typeof d !== 'string' || d.length !== 10) return null
+  if (typeof n !== 'string') return null
+  const mood = MOODS.find((x) => x.id === m) // 6개 중 하나여야 한다
+  if (!mood) return null
+  return { t, r, m: mood.id, d, n: n.slice(0, MEMO_MAX) }
 }
 
-// d 값 → 항목 배열. 열 수 없으면 null, 틀린 항목은 빼고 돌려준다
-export function decodeShare(code: string | null): SharedItem[] | null {
-  if (!code) return null
+// 주소의 글자 → 항목 배열. 열 수 없으면 null, 틀린 항목은 뺀다
+// (useParams 가 이미 encodeURIComponent 를 풀어서 준다 — 여기선 JSON.parse 만)
+export function decodeShare(data: string | undefined): SharedItem[] | null {
+  if (!data) return null
   try {
-    const data: unknown = JSON.parse(fromBase64Url(code))
-    if (!Array.isArray(data)) return null
-    const items = data.filter(isSharedItem).slice(0, SHARE_MAX)
-      .map((i) => ({ ...i, m: i.m as MoodId, n: i.n.slice(0, MEMO_MAX) }))
-    return items.length > 0 ? items : null
+    const parsed: unknown = JSON.parse(data)
+    if (!Array.isArray(parsed)) return null
+    const items: SharedItem[] = []
+    for (const x of parsed) {
+      const item = toItem(x)
+      if (item) items.push(item)
+    }
+    return items.length > 0 ? items.slice(0, SHARE_MAX) : null
   } catch {
-    return null
+    return null // JSON 이 아니면
   }
 }

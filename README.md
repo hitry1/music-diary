@@ -13,13 +13,13 @@ npm run build    # dist/ 에 배포용
 ## 기능
 | 기능 | 화면(주소) |
 |---|---|
-| 곡 검색 (iTunes Search API, 입력 0.45초 멈추면 검색, 검색어를 주소 `?q=` 에 보관) | `/` |
+| 곡 검색 (iTunes Search API, 입력 0.45초 멈추면 검색, 검색어 기억, 입력 중 옛 결과 숨김) | `/` |
 | 30초 미리듣기 (한 번에 한 곡) | 모든 곡 카드 ▶ |
 | 감상 기록 등록 — 별점·기분·들은 날·메모, 입력 검사 | `/track/:trackId` |
 | 기록 상세 보기 · 수정 · 삭제 | `/diary/:entryId` |
 | 내 기록 검색(제목·가수·앨범·메모) · 기분 거르기 · 정렬(최근/별점/제목) | `/diary` |
 | 통계 — 기록 수 · 평균 별점 · 기분 분포 · 자주 들은 가수 · 장르 | `/stats` |
-| 공유 링크 — 보이는 기록(최대 20개)을 주소에 담아 복사, 받은 사람은 읽기 전용으로 보고 「담기」(같은 곡·같은 날은 건너뜀) | `/diary` → `/shared?d=…` |
+| 공유 링크 — 보이는 기록(최대 20개)을 주소에 담아 복사, 받은 사람은 읽기 전용으로 보고 「담기」(같은 곡·같은 날은 건너뜀) | `/diary` → `/shared/:data` |
 | 없는 주소 안내 | `*` |
 
 기록은 브라우저 localStorage 에 저장되어 새로고침해도 남습니다.
@@ -27,9 +27,10 @@ npm run build    # dist/ 에 배포용
 ## 쓴 기술
 - **TypeScript**: `strict`, `any` 없음 — 데이터·Props·reducer 액션·API 응답을 타입으로 정의
 
-- **react-router-dom**: `BrowserRouter` · `Routes` · `Route`(중첩 · `index` · `:param` · `*`) · `Outlet` · `NavLink` · `Link`(state 넘기기) · `useParams` · `useNavigate` · `useLocation` · `useSearchParams`
-- **Hooks**: `useState` · `useEffect`(API 호출·취소, 저장, 오디오 정리) · `useReducer`(등록·수정·삭제) · `useContext`(기록·플레이어 공유) · `useMemo`(거르기·통계) · `useRef`(오디오) · 직접 만든 `useDebounce`
-- **반응형**: CSS Grid + 미디어 쿼리 3단(데스크톱 · 760px · 520px), 390px 폭에서 가로 넘침 0px
+- **react-router-dom**: `BrowserRouter` · `Routes` · `Route`(중첩 · `index` · `:param` · `*`) · `Outlet` · `NavLink` · `Link` · `useParams` · `useNavigate`
+- **Hooks**: `useState` · `useEffect`(API 호출·늦은 응답 버리기, 저장, 오디오 정리) · `useReducer`(등록·수정·삭제) · `useContext`(기록·플레이어 공유) · `useMemo`(거르기·통계) · `useRef`(오디오) · 직접 만든 `useDebounce`
+- 수업(2~11주차)에서 배운 문법으로 짰다 — 대조표는 설계서 §11
+- **반응형**: flex + 미디어 쿼리(데스크톱 · 760px · 520px), 390px 폭에서 가로 넘침 0px
 
 ## 폴더
 ```
@@ -39,7 +40,7 @@ src/
   context/PlayerContext.tsx 30초 미리듣기 오디오 하나를 공유
   hooks/useDebounce.ts     입력이 멈춘 뒤에 값 넘기기
   components/              Layout · TrackCard · EntryForm · EntryItem · FilterBar · StarRating · PlayButton
-  utils/share.ts           공유 링크 만들기·읽기(base64url, 받은 값 검사)
+  utils/share.ts           공유 링크 만들기·읽기(encodeURIComponent, 받은 값 검사)
   pages/                   SharedPage · SearchPage · TrackPage · DiaryPage · EntryDetailPage · StatsPage · NotFound
   moods.ts                 기분 태그 목록
   types.ts                 데이터 타입(Track · Entry · EntryForm · MoodId · SortKey)

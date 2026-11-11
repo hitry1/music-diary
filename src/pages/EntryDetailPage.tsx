@@ -38,7 +38,7 @@ export default function EntryDetailPage() {
           <img src={entry.artwork} alt={`${entry.album} 앨범 표지`} />
           <PlayButton url={entry.previewUrl} />
         </div>
-        <div>
+        <div className="detail-info">
           <h1 className="page-title">{entry.title}</h1>
           <p className="muted">{entry.artist} · {entry.album}</p>
 

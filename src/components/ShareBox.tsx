@@ -8,7 +8,7 @@ export default function ShareBox({ entries }: { entries: Entry[] }) {
   const [message, setMessage] = useState('')
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/shared?d=${encodeShare(entries)}`
+    const url = `${window.location.origin}/shared/${encodeShare(entries)}`
     setLink(url)
     const cut = entries.length > SHARE_MAX ? ` (앞 ${SHARE_MAX}개만 담았어요)` : ''
     try {

@@ -7,10 +7,10 @@ interface Props {
   recorded: boolean
 }
 
-// 검색 결과 한 곡 — 누르면 기록 쓰기 화면(/track/:trackId)으로, 곡 정보를 state 로 함께 넘긴다
+// 검색 결과 한 곡 — 누르면 기록 쓰기 화면(/track/:trackId)으로
 export default function TrackCard({ track, recorded }: Props) {
   return (
-    <Link to={`/track/${track.trackId}`} state={{ track }} className="track-card">
+    <Link to={`/track/${track.trackId}`} className="track-card">
       <div className="art">
         <img src={track.artwork} alt="" loading="lazy" />
         <PlayButton url={track.previewUrl} />
