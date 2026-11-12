@@ -1,7 +1,9 @@
 # 🎵 뮤직 다이어리
 
 들은 곡을 검색해 별점·기분·한 줄 감상으로 남기는 React 웹서비스입니다.
-(2026-2학기 스크립트프로그래밍 「생성형 AI 기반 바이브 코딩을 활용한 React 웹서비스 개발」 과제)
+(2026-2학기 스크립트프로그래밍 「생성형 AI 기반 바이브 코딩을 활용한 React 웹서비스 개발」 과제 · 컴퓨터공학과 20250590 이청호)
+
+**▶ 실행: https://hitry1.github.io/music-diary/**
 
 ## 실행
 ```bash
@@ -44,9 +46,13 @@ src/
   pages/                   SharedPage · SearchPage · TrackPage · DiaryPage · EntryDetailPage · StatsPage · NotFound
   moods.ts                 기분 태그 목록
   types.ts                 데이터 타입(Track · Entry · EntryForm · MoodId · SortKey)
+docs/sdlc/                 요구사항(requirements.md) · 설계(design.md) · 단계별 프롬프트(prompts.md)
 docs/                      개발 기록 · 화면 캡처
 ```
 
 ## 외부 API
 [iTunes Search API](https://performance-partners.apple.com/search-api) — 키가 필요 없고 CORS 를 허용합니다.
 한국 스토어(`country=KR`)는 노래를 팔지 않아 결과가 비어서 미국 스토어를 씁니다(한글 검색어는 알아듣지만 곡 제목은 영문으로 올 수 있습니다).
+
+## 배포
+`main` 에 올리면 GitHub Actions(`.github/workflows/deploy.yml`)가 `BASE=/music-diary/` 로 빌드해 GitHub Pages 에 올린다. 주소로 바로 들어온 화면(`/diary/123`, 공유 링크)도 열리도록 `404.html` 을 `index.html` 과 같게 둔다.

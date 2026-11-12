@@ -15,7 +15,8 @@ export default function App() {
   return (
     <DiaryProvider>
       <PlayerProvider>
-        <BrowserRouter>
+        {/* basename — GitHub Pages 에서는 주소 앞에 /music-diary 가 붙는다(로컬은 /) */}
+        <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<SearchPage />} />
